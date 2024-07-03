@@ -1,0 +1,259 @@
+{
+	"name": "SalesFactETL",
+	"properties": {
+		"description": "this data flow performs all ETL for the Sales Fact table",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Sales_realtional_source_table",
+						"type": "DatasetReference"
+					},
+					"name": "SalesSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "Sales_jason",
+						"type": "DatasetReference"
+					},
+					"name": "RealTimeSalesSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "Customer_Source_table",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "Customer_dimnsions_table",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerDim"
+				},
+				{
+					"dataset": {
+						"referenceName": "Region_Dimension_Table",
+						"type": "DatasetReference"
+					},
+					"name": "RegionDim"
+				},
+				{
+					"dataset": {
+						"referenceName": "Product_dimension_table",
+						"type": "DatasetReference"
+					},
+					"name": "ProductDim"
+				},
+				{
+					"dataset": {
+						"referenceName": "Time_Dimension_table",
+						"type": "DatasetReference"
+					},
+					"name": "TimeDim"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Sales_Fact_Table",
+						"type": "DatasetReference"
+					},
+					"name": "SalesFactSink",
+					"description": "Load data to the Sales_Fact_Table"
+				}
+			],
+			"transformations": [
+				{
+					"name": "UnrolledJASON",
+					"description": "Unrolling JASON array to the new columns with rows"
+				},
+				{
+					"name": "DerivedTotalColumn",
+					"description": "derived column TotalAmount = UnitPrice*Quantity and string date type convert to the date type"
+				},
+				{
+					"name": "RemoveUnitPrice",
+					"description": "Remove Unit Price "
+				},
+				{
+					"name": "UnionRealTimeJASONandEER"
+				},
+				{
+					"name": "ExtractRegionID"
+				},
+				{
+					"name": "SelectSalesColumn"
+				},
+				{
+					"name": "CustomerDimLookup"
+				},
+				{
+					"name": "RegionDimLookup"
+				},
+				{
+					"name": "ProductDimLookup"
+				},
+				{
+					"name": "TimeDimLookup"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SaleID as string,",
+				"          ProductID as string,",
+				"          CustomerID as string,",
+				"          SaleDate as date,",
+				"          Quantity as integer,",
+				"          TotalAmount as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> SalesSource",
+				"source(output(",
+				"          SalesData as (SaleID as string, ProductID as string, CustomerID as string, Date as string, Quantity as integer, UnitPrice as integer)[]",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     documentForm: 'documentPerLine') ~> RealTimeSalesSource",
+				"source(output(",
+				"          CustomerID as string,",
+				"          CustomerName as string,",
+				"          ContactNumber as string,",
+				"          RegionID as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> CustomerSource",
+				"source(output(",
+				"          CustomerSK as integer,",
+				"          CustomerID as string,",
+				"          CustomerName as string,",
+				"          ContactNumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> CustomerDim",
+				"source(output(",
+				"          RegionSK as integer,",
+				"          RegionID as integer,",
+				"          RegionName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> RegionDim",
+				"source(output(",
+				"          productSK as integer,",
+				"          ProductID as string,",
+				"          ProductName as string,",
+				"          Price as integer,",
+				"          Category as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ProductDim",
+				"source(output(",
+				"          DateSK as integer,",
+				"          Date as date,",
+				"          Day as integer,",
+				"          Month as integer,",
+				"          Year as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> TimeDim",
+				"RealTimeSalesSource foldDown(unroll(SalesData, SalesData),",
+				"     mapColumn(",
+				"          SalesID = SalesData.SaleID,",
+				"          ProductID = SalesData.ProductID,",
+				"          CustomerID = SalesData.CustomerID,",
+				"          Date = SalesData.Date,",
+				"          Quantity = SalesData.Quantity,",
+				"          UnitPrice = SalesData.UnitPrice",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> UnrolledJASON",
+				"UnrolledJASON derive(TotalAmount = multiply(Quantity,UnitPrice),",
+				"          Date = toDate(Date)) ~> DerivedTotalColumn",
+				"DerivedTotalColumn select(mapColumn(",
+				"          SaleID = SalesID,",
+				"          ProductID,",
+				"          CustomerID,",
+				"          SaleDate = Date,",
+				"          Quantity,",
+				"          TotalAmount",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> RemoveUnitPrice",
+				"SalesSource, RemoveUnitPrice union(byName: true)~> UnionRealTimeJASONandEER",
+				"UnionRealTimeJASONandEER, CustomerSource lookup(UnionRealTimeJASONandEER@CustomerID == CustomerSource@CustomerID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> ExtractRegionID",
+				"ExtractRegionID select(mapColumn(",
+				"          SaleID,",
+				"          ProductID,",
+				"          CustomerID = UnionRealTimeJASONandEER@CustomerID,",
+				"          SaleDate,",
+				"          Quantity,",
+				"          TotalAmount,",
+				"          RegionID",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectSalesColumn",
+				"SelectSalesColumn, CustomerDim lookup(SelectSalesColumn@CustomerID == CustomerDim@CustomerID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> CustomerDimLookup",
+				"CustomerDimLookup, RegionDim lookup(SelectSalesColumn@RegionID == RegionDim@RegionID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> RegionDimLookup",
+				"RegionDimLookup, ProductDim lookup(SelectSalesColumn@ProductID == ProductDim@ProductID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> ProductDimLookup",
+				"ProductDimLookup, TimeDim lookup(SaleDate == Date,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> TimeDimLookup",
+				"TimeDimLookup sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SalesSK as integer,",
+				"          DateSK as integer,",
+				"          productSK as integer,",
+				"          RegionSK as integer,",
+				"          CustomerSK as integer,",
+				"          quantity as integer,",
+				"          totalAmount as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          DateSK,",
+				"          productSK,",
+				"          RegionSK,",
+				"          CustomerSK,",
+				"          quantity = Quantity,",
+				"          totalAmount = TotalAmount",
+				"     )) ~> SalesFactSink"
+			]
+		}
+	}
+}

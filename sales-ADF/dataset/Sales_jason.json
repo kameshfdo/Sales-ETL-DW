@@ -1,0 +1,49 @@
+{
+	"name": "Sales_jason",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RealTimeSalesLink",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Real_Time_Sales_Data.json",
+				"container": "jason-container"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"SalesData": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"SaleID": {
+								"type": "string"
+							},
+							"ProductID": {
+								"type": "string"
+							},
+							"CustomerID": {
+								"type": "string"
+							},
+							"Date": {
+								"type": "string"
+							},
+							"Quantity": {
+								"type": "integer"
+							},
+							"UnitPrice": {
+								"type": "integer"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,34 @@
+{
+	"name": "Product_source_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesSourceDB_Link",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ProductID",
+				"type": "varchar"
+			},
+			{
+				"name": "ProductName",
+				"type": "varchar"
+			},
+			{
+				"name": "Price",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Category",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Products"
+		}
+	}
+}

@@ -1,0 +1,57 @@
+{
+	"name": "ProductETL",
+	"properties": {
+		"description": "this data flow performs all ETL for the Product Dimension ",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Product_source_table",
+						"type": "DatasetReference"
+					},
+					"name": "ProductSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Product_dimension_table",
+						"type": "DatasetReference"
+					},
+					"name": "ProductSink"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          ProductID as string,",
+				"          ProductName as string,",
+				"          Price as integer,",
+				"          Category as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> ProductSource",
+				"ProductSource sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          productSK as integer,",
+				"          ProductID as string,",
+				"          ProductName as string,",
+				"          Price as integer,",
+				"          Category as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> ProductSink"
+			]
+		}
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"name": "Sales_source_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesSourceDB_Link",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}

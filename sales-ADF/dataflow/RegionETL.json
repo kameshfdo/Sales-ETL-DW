@@ -1,0 +1,53 @@
+{
+	"name": "RegionETL",
+	"properties": {
+		"description": "this data flow performs all ETL for the Region Dimension ",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Region_Source_table",
+						"type": "DatasetReference"
+					},
+					"name": "RegionSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Region_Dimension_Table",
+						"type": "DatasetReference"
+					},
+					"name": "RegionSink"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          RegionID as integer,",
+				"          RegionName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> RegionSource",
+				"RegionSource sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          RegionSK as integer,",
+				"          RegionID as integer,",
+				"          RegionName as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> RegionSink"
+			]
+		}
+	}
+}

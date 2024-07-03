@@ -1,0 +1,52 @@
+{
+	"name": "Sales_Fact_Table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesTargetDWLink",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SalesSK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DateSK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "productSK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "RegionSK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "CustomerSK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "quantity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "totalAmount",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "SalesFact"
+		}
+	}
+}

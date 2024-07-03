@@ -1,0 +1,26 @@
+{
+	"name": "Region_Source_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesSourceDB_Link",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "RegionID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "RegionName",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Regions"
+		}
+	}
+}

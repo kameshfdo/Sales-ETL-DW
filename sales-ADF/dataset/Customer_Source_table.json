@@ -1,0 +1,34 @@
+{
+	"name": "Customer_Source_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesSourceDB_Link",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CustomerID",
+				"type": "varchar"
+			},
+			{
+				"name": "CustomerName",
+				"type": "varchar"
+			},
+			{
+				"name": "ContactNumber",
+				"type": "varchar"
+			},
+			{
+				"name": "RegionID",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Customers"
+		}
+	}
+}

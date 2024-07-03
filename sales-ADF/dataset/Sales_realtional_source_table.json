@@ -1,0 +1,43 @@
+{
+	"name": "Sales_realtional_source_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesSourceDB_Link",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SaleID",
+				"type": "varchar"
+			},
+			{
+				"name": "ProductID",
+				"type": "varchar"
+			},
+			{
+				"name": "CustomerID",
+				"type": "varchar"
+			},
+			{
+				"name": "SaleDate",
+				"type": "date"
+			},
+			{
+				"name": "Quantity",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "TotalAmount",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Sales"
+		}
+	}
+}

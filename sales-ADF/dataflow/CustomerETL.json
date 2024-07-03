@@ -1,0 +1,61 @@
+{
+	"name": "CustomerETL",
+	"properties": {
+		"description": "this data flow performs all ETL for the Customer Dimension ",
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Customer_Source_table",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Customer_dimnsions_table",
+						"type": "DatasetReference"
+					},
+					"name": "CustomerSink"
+				}
+			],
+			"transformations": [],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as string,",
+				"          CustomerName as string,",
+				"          ContactNumber as string,",
+				"          RegionID as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> CustomerSource",
+				"CustomerSource sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          CustomerSK as integer,",
+				"          CustomerID as string,",
+				"          CustomerName as string,",
+				"          ContactNumber as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID,",
+				"          CustomerName,",
+				"          ContactNumber",
+				"     )) ~> CustomerSink"
+			]
+		}
+	}
+}
