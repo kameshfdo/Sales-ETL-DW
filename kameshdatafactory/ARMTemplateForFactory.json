@@ -1186,6 +1186,38 @@
 				"[concat(variables('factoryId'), '/datasets/Time_Dimension_table')]",
 				"[concat(variables('factoryId'), '/datasets/Sales_Fact_Table')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TriggerAssignment')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "ETL pipeline every 20 minutes with the end date 2024/12/31.",
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pipe_sales_dw",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Minute",
+						"interval": 20,
+						"startTime": "2024-07-03T15:25:00",
+						"endTime": "2024-12-31T15:25:00",
+						"timeZone": "Sri Lanka Standard Time"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pipe_sales_dw')]"
+			]
 		}
 	]
 }
