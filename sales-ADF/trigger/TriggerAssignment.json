@@ -1,0 +1,26 @@
+{
+	"name": "TriggerAssignment",
+	"properties": {
+		"description": "ETL pipeline every 20 minutes with the end date 2024/12/31.",
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "pipe_sales_dw",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 20,
+				"startTime": "2024-07-03T15:25:00",
+				"endTime": "2024-12-31T15:25:00",
+				"timeZone": "Sri Lanka Standard Time"
+			}
+		}
+	}
+}
