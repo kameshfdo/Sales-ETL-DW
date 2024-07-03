@@ -1,0 +1,1191 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "kameshdatafactory"
+		},
+		"RealTimeSalesLink_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'RealTimeSalesLink'"
+		},
+		"SalesSourceDB_Link_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SalesSourceDB_Link'"
+		},
+		"SalesTargetDWLink_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SalesTargetDWLink'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/RealTimeSalesLink')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "this is referred to the Jason source file which contain sales real time data",
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('RealTimeSalesLink_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SalesSourceDB_Link')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This is link connect to the relational DB for the sales",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('SalesSourceDB_Link_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SalesTargetDWLink')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "This for the access from sales target warehouse ",
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('SalesTargetDWLink_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesTargetDWLink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "CustomerSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "varchar"
+					},
+					{
+						"name": "CustomerName",
+						"type": "varchar"
+					},
+					{
+						"name": "ContactNumber",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "CustomerDim"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesTargetDWLink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Customer_Source_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesSourceDB_Link",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "CustomerID",
+						"type": "varchar"
+					},
+					{
+						"name": "CustomerName",
+						"type": "varchar"
+					},
+					{
+						"name": "ContactNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "RegionID",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Customers"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesSourceDB_Link')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Customer_dimnsions_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesTargetDWLink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "CustomerSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerID",
+						"type": "varchar"
+					},
+					{
+						"name": "CustomerName",
+						"type": "varchar"
+					},
+					{
+						"name": "ContactNumber",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "CustomerDim"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesTargetDWLink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Product_dimension_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesTargetDWLink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "productSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ProductID",
+						"type": "varchar"
+					},
+					{
+						"name": "ProductName",
+						"type": "varchar"
+					},
+					{
+						"name": "Price",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Category",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "ProductDim"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesTargetDWLink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Product_source_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesSourceDB_Link",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "ProductID",
+						"type": "varchar"
+					},
+					{
+						"name": "ProductName",
+						"type": "varchar"
+					},
+					{
+						"name": "Price",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Category",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Products"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesSourceDB_Link')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Region_Dimension_Table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesTargetDWLink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "RegionSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RegionID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RegionName",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "RegionDim"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesTargetDWLink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Region_Source_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesSourceDB_Link",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "RegionID",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RegionName",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Regions"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesSourceDB_Link')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Sales_Fact_Table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesTargetDWLink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SalesSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DateSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "productSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "RegionSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "CustomerSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "quantity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "totalAmount",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "SalesFact"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesTargetDWLink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Sales_jason')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "RealTimeSalesLink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Real_Time_Sales_Data.json",
+						"container": "jason-container"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"SalesData": {
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"SaleID": {
+										"type": "string"
+									},
+									"ProductID": {
+										"type": "string"
+									},
+									"CustomerID": {
+										"type": "string"
+									},
+									"Date": {
+										"type": "string"
+									},
+									"Quantity": {
+										"type": "integer"
+									},
+									"UnitPrice": {
+										"type": "integer"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/RealTimeSalesLink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Sales_realtional_source_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesSourceDB_Link",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SaleID",
+						"type": "varchar"
+					},
+					{
+						"name": "ProductID",
+						"type": "varchar"
+					},
+					{
+						"name": "CustomerID",
+						"type": "varchar"
+					},
+					{
+						"name": "SaleDate",
+						"type": "date"
+					},
+					{
+						"name": "Quantity",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "TotalAmount",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "Sales"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesSourceDB_Link')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Sales_source_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesSourceDB_Link",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesSourceDB_Link')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Time_Dimension_table')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "SalesTargetDWLink",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "DateSK",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Date",
+						"type": "date"
+					},
+					{
+						"name": "Day",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Month",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Year",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "TimeDim"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/SalesTargetDWLink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CustomerETL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "this data flow performs all ETL for the Customer Dimension ",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Customer_Source_table",
+								"type": "DatasetReference"
+							},
+							"name": "CustomerSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Customer_dimnsions_table",
+								"type": "DatasetReference"
+							},
+							"name": "CustomerSink"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerID as string,",
+						"          CustomerName as string,",
+						"          ContactNumber as string,",
+						"          RegionID as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> CustomerSource",
+						"CustomerSource sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          CustomerSK as integer,",
+						"          CustomerID as string,",
+						"          CustomerName as string,",
+						"          ContactNumber as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          CustomerID,",
+						"          CustomerName,",
+						"          ContactNumber",
+						"     )) ~> CustomerSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Customer_Source_table')]",
+				"[concat(variables('factoryId'), '/datasets/Customer_dimnsions_table')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ProductETL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "this data flow performs all ETL for the Product Dimension ",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Product_source_table",
+								"type": "DatasetReference"
+							},
+							"name": "ProductSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Product_dimension_table",
+								"type": "DatasetReference"
+							},
+							"name": "ProductSink"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          ProductID as string,",
+						"          ProductName as string,",
+						"          Price as integer,",
+						"          Category as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ProductSource",
+						"ProductSource sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          productSK as integer,",
+						"          ProductID as string,",
+						"          ProductName as string,",
+						"          Price as integer,",
+						"          Category as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> ProductSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Product_source_table')]",
+				"[concat(variables('factoryId'), '/datasets/Product_dimension_table')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/RegionETL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "this data flow performs all ETL for the Region Dimension ",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Region_Source_table",
+								"type": "DatasetReference"
+							},
+							"name": "RegionSource"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Region_Dimension_Table",
+								"type": "DatasetReference"
+							},
+							"name": "RegionSink"
+						}
+					],
+					"transformations": [],
+					"scriptLines": [
+						"source(output(",
+						"          RegionID as integer,",
+						"          RegionName as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> RegionSource",
+						"RegionSource sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          RegionSK as integer,",
+						"          RegionID as integer,",
+						"          RegionName as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> RegionSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Region_Source_table')]",
+				"[concat(variables('factoryId'), '/datasets/Region_Dimension_Table')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SalesFactETL')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "this data flow performs all ETL for the Sales Fact table",
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Sales_realtional_source_table",
+								"type": "DatasetReference"
+							},
+							"name": "SalesSource"
+						},
+						{
+							"dataset": {
+								"referenceName": "Sales_jason",
+								"type": "DatasetReference"
+							},
+							"name": "RealTimeSalesSource"
+						},
+						{
+							"dataset": {
+								"referenceName": "Customer_Source_table",
+								"type": "DatasetReference"
+							},
+							"name": "CustomerSource"
+						},
+						{
+							"dataset": {
+								"referenceName": "Customer_dimnsions_table",
+								"type": "DatasetReference"
+							},
+							"name": "CustomerDim"
+						},
+						{
+							"dataset": {
+								"referenceName": "Region_Dimension_Table",
+								"type": "DatasetReference"
+							},
+							"name": "RegionDim"
+						},
+						{
+							"dataset": {
+								"referenceName": "Product_dimension_table",
+								"type": "DatasetReference"
+							},
+							"name": "ProductDim"
+						},
+						{
+							"dataset": {
+								"referenceName": "Time_Dimension_table",
+								"type": "DatasetReference"
+							},
+							"name": "TimeDim"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Sales_Fact_Table",
+								"type": "DatasetReference"
+							},
+							"name": "SalesFactSink",
+							"description": "Load data to the Sales_Fact_Table"
+						}
+					],
+					"transformations": [
+						{
+							"name": "UnrolledJASON",
+							"description": "Unrolling JASON array to the new columns with rows"
+						},
+						{
+							"name": "DerivedTotalColumn",
+							"description": "derived column TotalAmount = UnitPrice*Quantity and string date type convert to the date type"
+						},
+						{
+							"name": "RemoveUnitPrice",
+							"description": "Remove Unit Price "
+						},
+						{
+							"name": "UnionRealTimeJASONandEER"
+						},
+						{
+							"name": "ExtractRegionID"
+						},
+						{
+							"name": "SelectSalesColumn"
+						},
+						{
+							"name": "CustomerDimLookup"
+						},
+						{
+							"name": "RegionDimLookup"
+						},
+						{
+							"name": "ProductDimLookup"
+						},
+						{
+							"name": "TimeDimLookup"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SaleID as string,",
+						"          ProductID as string,",
+						"          CustomerID as string,",
+						"          SaleDate as date,",
+						"          Quantity as integer,",
+						"          TotalAmount as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> SalesSource",
+						"source(output(",
+						"          SalesData as (SaleID as string, ProductID as string, CustomerID as string, Date as string, Quantity as integer, UnitPrice as integer)[]",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false,",
+						"     documentForm: 'documentPerLine') ~> RealTimeSalesSource",
+						"source(output(",
+						"          CustomerID as string,",
+						"          CustomerName as string,",
+						"          ContactNumber as string,",
+						"          RegionID as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> CustomerSource",
+						"source(output(",
+						"          CustomerSK as integer,",
+						"          CustomerID as string,",
+						"          CustomerName as string,",
+						"          ContactNumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> CustomerDim",
+						"source(output(",
+						"          RegionSK as integer,",
+						"          RegionID as integer,",
+						"          RegionName as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> RegionDim",
+						"source(output(",
+						"          productSK as integer,",
+						"          ProductID as string,",
+						"          ProductName as string,",
+						"          Price as integer,",
+						"          Category as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> ProductDim",
+						"source(output(",
+						"          DateSK as integer,",
+						"          Date as date,",
+						"          Day as integer,",
+						"          Month as integer,",
+						"          Year as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> TimeDim",
+						"RealTimeSalesSource foldDown(unroll(SalesData, SalesData),",
+						"     mapColumn(",
+						"          SalesID = SalesData.SaleID,",
+						"          ProductID = SalesData.ProductID,",
+						"          CustomerID = SalesData.CustomerID,",
+						"          Date = SalesData.Date,",
+						"          Quantity = SalesData.Quantity,",
+						"          UnitPrice = SalesData.UnitPrice",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> UnrolledJASON",
+						"UnrolledJASON derive(TotalAmount = multiply(Quantity,UnitPrice),",
+						"          Date = toDate(Date)) ~> DerivedTotalColumn",
+						"DerivedTotalColumn select(mapColumn(",
+						"          SaleID = SalesID,",
+						"          ProductID,",
+						"          CustomerID,",
+						"          SaleDate = Date,",
+						"          Quantity,",
+						"          TotalAmount",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> RemoveUnitPrice",
+						"SalesSource, RemoveUnitPrice union(byName: true)~> UnionRealTimeJASONandEER",
+						"UnionRealTimeJASONandEER, CustomerSource lookup(UnionRealTimeJASONandEER@CustomerID == CustomerSource@CustomerID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> ExtractRegionID",
+						"ExtractRegionID select(mapColumn(",
+						"          SaleID,",
+						"          ProductID,",
+						"          CustomerID = UnionRealTimeJASONandEER@CustomerID,",
+						"          SaleDate,",
+						"          Quantity,",
+						"          TotalAmount,",
+						"          RegionID",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectSalesColumn",
+						"SelectSalesColumn, CustomerDim lookup(SelectSalesColumn@CustomerID == CustomerDim@CustomerID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> CustomerDimLookup",
+						"CustomerDimLookup, RegionDim lookup(SelectSalesColumn@RegionID == RegionDim@RegionID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> RegionDimLookup",
+						"RegionDimLookup, ProductDim lookup(SelectSalesColumn@ProductID == ProductDim@ProductID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> ProductDimLookup",
+						"ProductDimLookup, TimeDim lookup(SaleDate == Date,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> TimeDimLookup",
+						"TimeDimLookup sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SalesSK as integer,",
+						"          DateSK as integer,",
+						"          productSK as integer,",
+						"          RegionSK as integer,",
+						"          CustomerSK as integer,",
+						"          quantity as integer,",
+						"          totalAmount as integer",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          DateSK,",
+						"          productSK,",
+						"          RegionSK,",
+						"          CustomerSK,",
+						"          quantity = Quantity,",
+						"          totalAmount = TotalAmount",
+						"     )) ~> SalesFactSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Sales_realtional_source_table')]",
+				"[concat(variables('factoryId'), '/datasets/Sales_jason')]",
+				"[concat(variables('factoryId'), '/datasets/Customer_Source_table')]",
+				"[concat(variables('factoryId'), '/datasets/Customer_dimnsions_table')]",
+				"[concat(variables('factoryId'), '/datasets/Region_Dimension_Table')]",
+				"[concat(variables('factoryId'), '/datasets/Product_dimension_table')]",
+				"[concat(variables('factoryId'), '/datasets/Time_Dimension_table')]",
+				"[concat(variables('factoryId'), '/datasets/Sales_Fact_Table')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipe_sales_dw')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"description": "this pipeline is preforming ETL every 20 munities.",
+				"activities": [
+					{
+						"name": "Product_ETL",
+						"description": "this data flow performs all ETL for the Product Dimension ",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "ProductETL",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"ProductSource": {},
+									"ProductSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Customer_ETL",
+						"description": "this data flow performs all ETL for the Customer Dimension ",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Product_ETL",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "CustomerETL",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CustomerSource": {},
+									"CustomerSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Region_ETL",
+						"description": "this data flow performs all ETL for the Region Dimension ",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Customer_ETL",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "RegionETL",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"RegionSource": {},
+									"RegionSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "SalesFactETL",
+						"description": "this data flow performs all ETL for the Sales Fact table",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Region_ETL",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "SalesFactETL",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SalesSource": {},
+									"RealTimeSalesSource": {},
+									"CustomerSource": {},
+									"CustomerDim": {},
+									"RegionDim": {},
+									"ProductDim": {},
+									"TimeDim": {},
+									"SalesFactSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/ProductETL')]",
+				"[concat(variables('factoryId'), '/dataflows/CustomerETL')]",
+				"[concat(variables('factoryId'), '/dataflows/RegionETL')]",
+				"[concat(variables('factoryId'), '/dataflows/SalesFactETL')]"
+			]
+		}
+	]
+}
