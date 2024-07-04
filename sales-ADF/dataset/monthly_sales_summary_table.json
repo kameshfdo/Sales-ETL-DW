@@ -1,0 +1,37 @@
+{
+	"name": "monthly_sales_summary_table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "SalesTargetDWLink",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SalesSummarySK",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Month",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "MonthlyQuantitySold",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "MonthlyTotalAmount",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "MonthSalesSummaryFact"
+		}
+	}
+}

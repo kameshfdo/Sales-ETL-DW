@@ -1,0 +1,106 @@
+{
+	"name": "MonthlySalesETL",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Sales_Fact_Table",
+						"type": "DatasetReference"
+					},
+					"name": "SalesFactSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "Time_Dimension_table",
+						"type": "DatasetReference"
+					},
+					"name": "TimeDImensionSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "monthly_summary_sales_table",
+						"type": "DatasetReference"
+					},
+					"name": "MonthlySalesSummarySink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "TimeLookup"
+				},
+				{
+					"name": "selectColumn"
+				},
+				{
+					"name": "GroupByMonth"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesSK as integer,",
+				"          DateSK as integer,",
+				"          productSK as integer,",
+				"          RegionSK as integer,",
+				"          CustomerSK as integer,",
+				"          quantity as integer,",
+				"          totalAmount as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> SalesFactSource",
+				"source(output(",
+				"          DateSK as integer,",
+				"          Date as date,",
+				"          Day as integer,",
+				"          Month as integer,",
+				"          Year as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> TimeDImensionSource",
+				"SalesFactSource, TimeDImensionSource lookup(SalesFactSource@DateSK == TimeDImensionSource@DateSK,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> TimeLookup",
+				"TimeLookup select(mapColumn(",
+				"          quantity,",
+				"          totalAmount,",
+				"          Month,",
+				"          Year",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColumn",
+				"selectColumn aggregate(groupBy(Month),",
+				"     quantity = sum(quantity),",
+				"          totalAmount = sum(totalAmount)) ~> GroupByMonth",
+				"GroupByMonth sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SalesSummarySK as integer,",
+				"          SalesMonth as integer,",
+				"          MonthlyQuantitySold as long,",
+				"          MonthlyTotalAmount as long",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SalesMonth = Month,",
+				"          MonthlyQuantitySold = quantity,",
+				"          MonthlyTotalAmount = totalAmount",
+				"     )) ~> MonthlySalesSummarySink"
+			]
+		}
+	}
+}
